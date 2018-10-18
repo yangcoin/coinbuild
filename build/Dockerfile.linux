@@ -1,0 +1,58 @@
+FROM ubuntu:16.04
+
+MAINTAINER yangchigi@yangchigi.com
+
+RUN apt-get update
+
+RUN apt-get install -y git build-essential wget pkg-config curl libtool autotools-dev \
+     automake libssl-dev libevent-dev bsdmainutils
+    
+
+WORKDIR /
+
+
+ENV OS_PACKAGE="python3 bc python3-zmq"
+
+RUN apt-get install -y software-properties-common
+
+RUN apt-get update&&apt-get install -y --no-install-recommends --no-upgrade -qq  ${OS_PACKAGE}
+
+ENV HOST=x86_64-unknown-linux-gnu
+
+ENV GIT_YANG=https://github.com/yangcoin/yangcoin.git
+ENV YANG_BRANCH=yangcoin
+RUN mkdir -p yangcoin &&git clone --depth=5 ${GIT_YANG} -b  ${YANG_BRANCH} yangcoin
+
+ENV COIN=https://github.com/yangcoin/yangcoin.git
+ENV COIN_BRANCH=yangcoin
+RUN mkdir -p /coin &&cd /coin &&git clone --depth=5  ${COIN} -b ${COIN_BRANCH} coin
+
+
+RUN mkdir -p /yangcoin/depends/sdk-sources /yangcoin/depends/SDKs \
+        &&curl --location --fail ${SDK_URL}/MacOSX${OSX_SDK}.sdk.tar.gz -o /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
+RUN tar -C /yangcoin/depends/SDKs -xf /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
+
+
+WORKDIR /yangcoin
+
+RUN ./autogen.sh
+
+RUN cd depends && make HOST=${HOST} -j4
+
+RUN make deploy
+
+WORKDIR /bitcoin
+
+RUN ./autogen.sh
+
+RUN ./configure CPPFLAGS="-I${BDB_PREFIX}/include/ -O2" LDFLAGS="-L${BDB_PREFIX}/lib/ -static-libstdc++" --with-gui --prefix=${BTCPREFIX} --disable-ccache --disable-maintainer-mode --disable-dependency-tracking --enable-glibc-back-compat --enable-reduce-exports --disable-bench --disable-gui-tests --enable-static
+
+RUN make 
+
+RUN make install DESTDIR=/bitcoin/bitcoin-${BTCVERSION}
+
+RUN mv /bitcoin/bitcoin-${BTCVERSION}${BTCPREFIX} /bitcoin-${BTCVERSION} && strip /bitcoin-${BTCVERSION}/bin/* && rm -rf /bitcoin-${BTCVERSION}/lib/pkgconfig && find /bitcoin-${BTCVERSION} -name "lib*.la" -delete && find /bitcoin-${BTCVERSION} -name "lib*.a" -delete 
+
+WORKDIR /
+
+RUN tar cvf bitcoin-${BTCVERSION}.tar bitcoin-${BTCVERSION} 
