@@ -55,7 +55,8 @@ RUN git pull
 RUN ./autogen.sh
 
 RUN ./configure --prefix=/yangcoin/depends/x86_64-w64-mingw32 \
-    LDFLAGS=" -static-libstdc++" \
+    LDFLAGS=" -static-libstdc++ -std=c++11"  \
+    --disable-bench \
     --disable-gui-tests \
     --enable-reduce-exports \
     --with-gui \
