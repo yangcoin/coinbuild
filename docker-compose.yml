@@ -1,2 +1,38 @@
-
-
+version: '3.3'
+services:
+  window:
+    build:
+      context: build
+    container_name: nomp-nomp
+    expose:
+      - "8080"
+      - "3032"
+      - "17117"
+    ports:
+      - "8888:80"
+      # for debug
+      - "9229:9229" 
+      - "13708:13708"
+      - "23008:23008"
+      - "23032:23032"
+      - "23256:23256"
+      - "13732:13732"
+      - "13756:13756"
+      - "13308:13308"
+      - "13332:13332"
+      - "13356:13356"
+      - "17117:17117"
+    volumes:
+      - ../node-open-mining-portal:/home/nomp/node-open-mining-portal
+      - ../node-stratum-pool:/home/nomp/node-stratum-pool
+      - ./:/hostdir
+    depends_on:
+      - redis
+    entrypoint: ["/hostdir/entrypoint.sh"]
+    logging:
+      options:
+        max-size: "200m"
+        max-file: "10"
+ 
+volumes:
+  redis_data:

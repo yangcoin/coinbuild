@@ -11,11 +11,21 @@ RUN apt-get install -y git build-essential wget pkg-config curl libtool autotool
 WORKDIR /
 
 
-ENV OS_PACKAGE="python3 cmake imagemagick libcap-dev librsvg2-bin libz-dev libbz2-dev libtiff-tools python-dev"
+ENV OS_PACKAGE="python \
+                python-pip \
+                python-dev \
+                cmake \
+                imagemagick \
+                libcap-dev \
+                librsvg2-bin \
+                libz-dev \
+                libbz2-dev \
+                imagemagick \
+                libtiff-tools"
 
 RUN apt-get install -y software-properties-common
 
-RUN apt-get update&&apt-get install -y --no-install-recommends --no-upgrade -qq  ${OS_PACKAGE}
+RUN apt-get update&&apt-get install -y  --install-recommends    ${OS_PACKAGE}
 
 RUN dpkg --add-architecture i386
 
@@ -24,21 +34,24 @@ ENV OSX_SDK=10.11
 ENV HOST=x86_64-apple-darwin11
 
 ENV GIT_YANG=https://github.com/yangcoin/yangcoin.git
+
 ENV YANG_BRANCH=yangcoin
+
 RUN mkdir -p yangcoin &&git clone --depth=5 ${GIT_YANG} -b  ${YANG_BRANCH} yangcoin
 
 ENV COIN=https://github.com/yangcoin/yangcoin.git
 ENV COIN_BRANCH=yangcoin
 RUN mkdir -p /coin &&cd /coin &&git clone --depth=5  ${COIN} -b ${COIN_BRANCH} coin
 
-
-RUN mkdir -p /yangcoin/depends/sdk-sources &&curl --location --fail ${SDK_URL}/MacOSX${OSX_SDK}.sdk.tar.gz -o /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
+RUN mkdir -p /yangcoin/depends/sdk-sources /yangcoin/depends/SDKs \
+        &&curl --location --fail ${SDK_URL}/MacOSX${OSX_SDK}.sdk.tar.gz -o /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
+RUN tar -C /yangcoin/depends/SDKs -xf /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
 
 
 WORKDIR /yangcoin
 
 RUN ./autogen.sh
-
+RUN apt-get install -y  python
 RUN cd depends && make HOST=${HOST} -j4
 
 RUN make deploy

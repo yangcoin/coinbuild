@@ -28,11 +28,6 @@ ENV COIN_BRANCH=yangcoin
 RUN mkdir -p /coin &&cd /coin &&git clone --depth=5  ${COIN} -b ${COIN_BRANCH} coin
 
 
-RUN mkdir -p /yangcoin/depends/sdk-sources /yangcoin/depends/SDKs \
-        &&curl --location --fail ${SDK_URL}/MacOSX${OSX_SDK}.sdk.tar.gz -o /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
-RUN tar -C /yangcoin/depends/SDKs -xf /yangcoin/depends/sdk-sources/MacOSX${OSX_SDK}.sdk.tar.gz
-
-
 WORKDIR /yangcoin
 
 RUN ./autogen.sh
